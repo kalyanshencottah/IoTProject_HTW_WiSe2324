@@ -1,0 +1,36 @@
+
+
+
+import network
+import dht
+import machine
+import time
+# above all codes are taken from micropython.org for reference.
+#from umqttsimple import MQTTclient
+from umqtt.simple import MQTTClient # use this 
+
+
+wlan = network.WLAN(network.STA_IF) # create station interface
+wlan.active(True) # activate the interface
+wlan.scan() # scan for access points
+wlan.isconnected() # check if the station is connected to an AP
+wlan.connect('Wokwi-GUEST', '') # connect to an AP
+time.sleep(3)# sleep for 1 second
+print(wlan.ifconfig()) # get the interface's IP/netmask/gw/DNS addresses
+
+d = dht.DHT22(machine.Pin(15))
+d.measure()
+print("temp is:",d.temperature()) # eg. 23.6 (°C)
+print("Humidity is:",d.humidity())# eg. 41.3 (% RH)
+
+client=MQTTClient("Kalyan","broker.hivemq.com")
+client.connect()
+message=d.temperature()
+
+while True:
+  d.measure()
+  client.publish("M_IoT/Kalyan/temp",str(d.temperature()))
+  client.publish("M_IoT/Kalyan/humi",str(d.humidity()))
+  print(d.temperature())
+  print(d.humidity())
+  time.sleep(30)
